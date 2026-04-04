@@ -13,27 +13,39 @@ use Psr\EventDispatcher\ListenerProviderInterface;
  *
  * Supports event class hierarchy: a listener on a parent class
  * will be triggered by events of any subclass.
+ *
+ * Note: getListenersForEvent() returns ListenerEntry objects (not plain callables)
+ * so the paired EventDispatcher can access async/priority/enabled metadata.
+ * This provider is designed to be used with PHPdot's EventDispatcher.
  */
 final class ListenerProvider implements ListenerProviderInterface
 {
     /** @var array<string, list<ListenerEntry>> */
     private array $listeners = [];
 
+    /** @var array<string, list<ListenerEntry>> */
+    private array $resolvedCache = [];
+
     /**
      * Get listeners for an event, sorted by order.
      *
      * Returns ListenerEntry objects sorted by order (ascending).
      * Matches the event's exact class and all parent classes/interfaces.
+     * Results are cached until listeners change.
      *
      * @return iterable<ListenerEntry>
      */
     public function getListenersForEvent(object $event): iterable
     {
-        $entries = $this->resolveEntries($event::class);
+        $class = $event::class;
 
-        usort($entries, static fn (ListenerEntry $a, ListenerEntry $b): int => $a->order <=> $b->order);
+        if (!isset($this->resolvedCache[$class])) {
+            $entries = $this->resolveEntries($class);
+            usort($entries, static fn (ListenerEntry $a, ListenerEntry $b): int => $a->order <=> $b->order);
+            $this->resolvedCache[$class] = $entries;
+        }
 
-        return $entries;
+        return $this->resolvedCache[$class];
     }
 
     /**
@@ -53,6 +65,7 @@ final class ListenerProvider implements ListenerProviderInterface
             async: $async,
             priority: $priority,
         );
+        $this->resolvedCache = [];
     }
 
     /**
@@ -65,6 +78,7 @@ final class ListenerProvider implements ListenerProviderInterface
         foreach ($entries as $entry) {
             $this->listeners[$entry->eventClass][] = $entry;
         }
+        $this->resolvedCache = [];
     }
 
     /**
@@ -80,6 +94,7 @@ final class ListenerProvider implements ListenerProviderInterface
         foreach ($stored as $entry) {
             $this->mergeEntry($entry);
         }
+        $this->resolvedCache = [];
     }
 
     /**
@@ -93,11 +108,13 @@ final class ListenerProvider implements ListenerProviderInterface
     }
 
     /**
-     * Check if any listeners are registered for an event class.
+     * Check if any listeners would be triggered for an event class.
+     *
+     * Checks the event class hierarchy (parents + interfaces), not just direct registration.
      */
     public function hasListeners(string $eventClass): bool
     {
-        return isset($this->listeners[$eventClass]) && $this->listeners[$eventClass] !== [];
+        return $this->resolveEntries($eventClass) !== [];
     }
 
     /**
@@ -106,6 +123,7 @@ final class ListenerProvider implements ListenerProviderInterface
     public function removeListeners(string $eventClass): void
     {
         unset($this->listeners[$eventClass]);
+        $this->resolvedCache = [];
     }
 
     /**
@@ -114,6 +132,7 @@ final class ListenerProvider implements ListenerProviderInterface
     public function clear(): void
     {
         $this->listeners = [];
+        $this->resolvedCache = [];
     }
 
     /**

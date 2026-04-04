@@ -22,9 +22,6 @@
         "phpstan/phpstan-strict-rules": "^2.0",
         "friendsofphp/php-cs-fixer": "^3.94"
     },
-    "provide": {
-        "psr/event-dispatcher-implementation": "1.0"
-    },
     "autoload": {
         "psr-4": {
             "PHPdot\\Event\\": "src/"
