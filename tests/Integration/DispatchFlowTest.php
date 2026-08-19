@@ -10,11 +10,11 @@ use PHPdot\Event\EventDispatcher;
 use PHPdot\Event\ListenerProvider;
 use PHPdot\Event\Provider\InMemoryListenerRepository;
 use PHPdot\Event\Provider\SyncOnlyDispatcher;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\NullLogger;
-use PHPUnit\Framework\Attributes\Test;
-use PHPUnit\Framework\TestCase;
 
 final class DispatchFlowTest extends TestCase
 {
@@ -41,9 +41,7 @@ final class DispatchFlowTest extends TestCase
         $services = [
             'chargePayment' => new class ($log) {
                 /** @param list<string> $log */
-                public function __construct(private array &$log)
-                {
-                }
+                public function __construct(private array &$log) {}
 
                 public function __invoke(OrderPlaced $event): void
                 {
@@ -52,9 +50,7 @@ final class DispatchFlowTest extends TestCase
             },
             'reserveInventory' => new class ($log) {
                 /** @param list<string> $log */
-                public function __construct(private array &$log)
-                {
-                }
+                public function __construct(private array &$log) {}
 
                 public function __invoke(OrderPlaced $event): void
                 {
@@ -63,9 +59,7 @@ final class DispatchFlowTest extends TestCase
             },
             'sendConfirmation' => new class ($log) {
                 /** @param list<string> $log */
-                public function __construct(private array &$log)
-                {
-                }
+                public function __construct(private array &$log) {}
 
                 public function __invoke(OrderPlaced $event): void
                 {
@@ -97,9 +91,7 @@ final class DispatchFlowTest extends TestCase
 
         $container = $this->createContainer([
             'asyncHandler' => new class ($called) {
-                public function __construct(private bool &$called)
-                {
-                }
+                public function __construct(private bool &$called) {}
 
                 public function __invoke(OrderPlaced $event): void
                 {
@@ -130,9 +122,7 @@ final class DispatchFlowTest extends TestCase
 
         $services = [
             'handler' => new class ($called) {
-                public function __construct(private bool &$called)
-                {
-                }
+                public function __construct(private bool &$called) {}
 
                 public function __invoke(object $event): void
                 {
@@ -162,9 +152,7 @@ final class DispatchFlowTest extends TestCase
 
         $services = [
             'handler' => new class ($called) {
-                public function __construct(private bool &$called)
-                {
-                }
+                public function __construct(private bool &$called) {}
 
                 public function __invoke(object $event): void
                 {
@@ -189,9 +177,7 @@ final class DispatchFlowTest extends TestCase
 
         $services = [
             'handler' => new class ($called) {
-                public function __construct(private bool &$called)
-                {
-                }
+                public function __construct(private bool &$called) {}
 
                 public function __invoke(object $event): void
                 {
@@ -258,9 +244,7 @@ final class DispatchFlowTest extends TestCase
     {
         $container = $this->createContainer($services);
         $async = new class implements AsyncDispatcherInterface {
-            public function publishAsync(object $event, string $handlerClass, int $priority = 0): void
-            {
-            }
+            public function publishAsync(object $event, string $handlerClass, int $priority = 0): void {}
         };
 
         return new EventDispatcher($provider, $container, $async, new NullLogger());
@@ -273,9 +257,7 @@ final class DispatchFlowTest extends TestCase
     {
         return new class ($services) implements ContainerInterface {
             /** @param array<string, mixed> $services */
-            public function __construct(private readonly array $services)
-            {
-            }
+            public function __construct(private readonly array $services) {}
 
             public function get(string $id): mixed
             {
@@ -298,8 +280,7 @@ final readonly class OrderPlaced
         public int $orderId,
         public int $userId,
         public float $total,
-    ) {
-    }
+    ) {}
 }
 
 class BaseOrderEvent
@@ -308,8 +289,7 @@ class BaseOrderEvent
         public readonly int $orderId,
         public readonly int $userId,
         public readonly float $total,
-    ) {
-    }
+    ) {}
 }
 
 final class SpecialOrderPlaced extends BaseOrderEvent
@@ -328,6 +308,5 @@ final class MutableOrderEvent
 {
     public function __construct(
         public float $total,
-    ) {
-    }
+    ) {}
 }

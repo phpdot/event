@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace PHPdot\Event\Tests\Unit;
 
 use PHPdot\Event\Provider\SyncOnlyDispatcher;
-use Psr\Container\ContainerInterface;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Psr\Container\ContainerInterface;
 
 final class SyncOnlyDispatcherTest extends TestCase
 {
@@ -16,9 +16,7 @@ final class SyncOnlyDispatcherTest extends TestCase
     {
         $called = false;
         $handler = new class ($called) {
-            public function __construct(private bool &$called)
-            {
-            }
+            public function __construct(private bool &$called) {}
 
             public function __invoke(object $event): void
             {
@@ -40,9 +38,7 @@ final class SyncOnlyDispatcherTest extends TestCase
     {
         $receivedEvent = null;
         $handler = new class ($receivedEvent) {
-            public function __construct(private ?object &$event)
-            {
-            }
+            public function __construct(private null|object &$event) {}
 
             public function __invoke(object $event): void
             {
@@ -80,9 +76,7 @@ final class SyncOnlyDispatcherTest extends TestCase
     {
         return new class ($services) implements ContainerInterface {
             /** @param array<string, mixed> $services */
-            public function __construct(private readonly array $services)
-            {
-            }
+            public function __construct(private readonly array $services) {}
 
             public function get(string $id): mixed
             {

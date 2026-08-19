@@ -67,8 +67,7 @@ final class ListenerTest extends TestCase
     #[Test]
     public function it_can_be_read_from_class_via_reflection(): void
     {
-        $class = new class {
-        };
+        $class = new class {};
 
         // Create a real attributed class inline — use reflection on a fixture
         $reflection = new \ReflectionClass(SingleListenerFixture::class);
@@ -109,17 +108,11 @@ final class ListenerTest extends TestCase
 }
 
 #[Listener(event: 'TestEvent', order: 1)]
-final class SingleListenerFixture
-{
-}
+final class SingleListenerFixture {}
 
 #[Listener(event: 'EventA', order: 1)]
 #[Listener(event: 'EventB', order: 2)]
-final class MultiListenerFixture
-{
-}
+final class MultiListenerFixture {}
 
 #[Listener(event: 'AsyncEvent', async: true, priority: 5)]
-final class AsyncListenerFixture
-{
-}
+final class AsyncListenerFixture {}

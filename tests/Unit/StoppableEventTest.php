@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace PHPdot\Event\Tests\Unit;
 
 use PHPdot\Event\Event\StoppableEvent;
-use Psr\EventDispatcher\StoppableEventInterface;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Psr\EventDispatcher\StoppableEventInterface;
 
 final class StoppableEventTest extends TestCase
 {
@@ -51,6 +51,5 @@ final class ConcreteStoppableEvent extends StoppableEvent
 {
     public function __construct(
         public readonly string $data = 'test',
-    ) {
-    }
+    ) {}
 }

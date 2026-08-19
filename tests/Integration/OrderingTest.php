@@ -8,10 +8,10 @@ use PHPdot\Event\Contract\AsyncDispatcherInterface;
 use PHPdot\Event\DTO\ListenerEntry;
 use PHPdot\Event\EventDispatcher;
 use PHPdot\Event\ListenerProvider;
-use Psr\Container\ContainerInterface;
-use Psr\Log\NullLogger;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Psr\Container\ContainerInterface;
+use Psr\Log\NullLogger;
 
 final class OrderingTest extends TestCase
 {
@@ -68,9 +68,7 @@ final class OrderingTest extends TestCase
             $capturedI = $i;
             $services[$name] = new class ($order, $capturedI) {
                 /** @param list<int> $order */
-                public function __construct(private array &$order, private readonly int $i)
-                {
-                }
+                public function __construct(private array &$order, private readonly int $i) {}
 
                 public function __invoke(object $event): void
                 {
@@ -95,9 +93,7 @@ final class OrderingTest extends TestCase
 
         $async = new class ($executionOrder) implements AsyncDispatcherInterface {
             /** @param list<string> $order */
-            public function __construct(private array &$order)
-            {
-            }
+            public function __construct(private array &$order) {}
 
             public function publishAsync(object $event, string $handlerClass, int $priority = 0): void
             {
@@ -115,9 +111,7 @@ final class OrderingTest extends TestCase
         $services = [
             'syncLate' => new class ($executionOrder) {
                 /** @param list<string> $order */
-                public function __construct(private array &$order)
-                {
-                }
+                public function __construct(private array &$order) {}
 
                 public function __invoke(object $event): void
                 {
@@ -126,9 +120,7 @@ final class OrderingTest extends TestCase
             },
             'syncMiddle' => new class ($executionOrder) {
                 /** @param list<string> $order */
-                public function __construct(private array &$order)
-                {
-                }
+                public function __construct(private array &$order) {}
 
                 public function __invoke(object $event): void
                 {
@@ -154,6 +146,7 @@ final class OrderingTest extends TestCase
     /**
      * @param list<string> $order
      * @param list<string> $names
+     *
      * @return array<string, object>
      */
     private function createHandlers(array &$order, array $names): array
@@ -162,9 +155,7 @@ final class OrderingTest extends TestCase
         foreach ($names as $name) {
             $services[$name] = new class ($order, $name) {
                 /** @param list<string> $order */
-                public function __construct(private array &$order, private readonly string $name)
-                {
-                }
+                public function __construct(private array &$order, private readonly string $name) {}
 
                 public function __invoke(object $event): void
                 {
@@ -183,9 +174,7 @@ final class OrderingTest extends TestCase
     {
         $container = $this->createContainer($services);
         $async = new class implements AsyncDispatcherInterface {
-            public function publishAsync(object $event, string $handlerClass, int $priority = 0): void
-            {
-            }
+            public function publishAsync(object $event, string $handlerClass, int $priority = 0): void {}
         };
 
         return new EventDispatcher($provider, $container, $async, new NullLogger());
@@ -198,9 +187,7 @@ final class OrderingTest extends TestCase
     {
         return new class ($services) implements ContainerInterface {
             /** @param array<string, mixed> $services */
-            public function __construct(private readonly array $services)
-            {
-            }
+            public function __construct(private readonly array $services) {}
 
             public function get(string $id): mixed
             {
@@ -215,6 +202,4 @@ final class OrderingTest extends TestCase
     }
 }
 
-final class TaskEvent
-{
-}
+final class TaskEvent {}

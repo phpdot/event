@@ -55,7 +55,7 @@ final class EventDispatcher implements EventDispatcherInterface
             return $this->dispatchStoppable($event);
         }
 
-        foreach ($this->provider->getListenersForEvent($event) as $entry) {
+        foreach ($this->provider->entriesForEvent($event) as $entry) {
             $this->dispatchEntry($event, $entry);
         }
 
@@ -75,7 +75,7 @@ final class EventDispatcher implements EventDispatcherInterface
             return $event;
         }
 
-        foreach ($this->provider->getListenersForEvent($event) as $entry) {
+        foreach ($this->provider->entriesForEvent($event) as $entry) {
             if ($event->isPropagationStopped()) {
                 break;
             }

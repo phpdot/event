@@ -127,7 +127,7 @@ final class InMemoryListenerRepository implements ListenerRepositoryInterface
      *
      * @return ?ListenerEntry
      */
-    private function findEntry(string $eventClass, string $handlerClass): ?ListenerEntry
+    private function findEntry(string $eventClass, string $handlerClass): null|ListenerEntry
     {
         foreach ($this->entries as $entry) {
             if ($entry->eventClass === $eventClass && $entry->handlerClass === $handlerClass) {

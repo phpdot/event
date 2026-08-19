@@ -10,10 +10,10 @@ use PHPdot\Event\EventDispatcher;
 use PHPdot\Event\Exception\AsyncDispatchException;
 use PHPdot\Event\ListenerProvider;
 use PHPdot\Event\Provider\SyncOnlyDispatcher;
-use Psr\Container\ContainerInterface;
-use Psr\Log\NullLogger;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Psr\Container\ContainerInterface;
+use Psr\Log\NullLogger;
 
 final class AsyncDispatchTest extends TestCase
 {
@@ -24,9 +24,7 @@ final class AsyncDispatchTest extends TestCase
 
         $async = new class ($published) implements AsyncDispatcherInterface {
             /** @param list<array{event: string, handler: string, priority: int}> $published */
-            public function __construct(private array &$published)
-            {
-            }
+            public function __construct(private array &$published) {}
 
             public function publishAsync(object $event, string $handlerClass, int $priority = 0): void
             {
@@ -62,9 +60,7 @@ final class AsyncDispatchTest extends TestCase
         $receivedEvent = null;
 
         $async = new class ($receivedEvent) implements AsyncDispatcherInterface {
-            public function __construct(private ?object &$event)
-            {
-            }
+            public function __construct(private null|object &$event) {}
 
             public function publishAsync(object $event, string $handlerClass, int $priority = 0): void
             {
@@ -127,9 +123,7 @@ final class AsyncDispatchTest extends TestCase
 
         $services = [
             'asyncOnly' => new class ($syncCalled) {
-                public function __construct(private bool &$called)
-                {
-                }
+                public function __construct(private bool &$called) {}
 
                 public function __invoke(object $event): void
                 {
@@ -155,9 +149,7 @@ final class AsyncDispatchTest extends TestCase
         $container = $this->createContainer([
             'handlerA' => new class ($results) {
                 /** @param list<string> $results */
-                public function __construct(private array &$results)
-                {
-                }
+                public function __construct(private array &$results) {}
 
                 public function __invoke(EmailEvent $event): void
                 {
@@ -166,9 +158,7 @@ final class AsyncDispatchTest extends TestCase
             },
             'handlerB' => new class ($results) {
                 /** @param list<string> $results */
-                public function __construct(private array &$results)
-                {
-                }
+                public function __construct(private array &$results) {}
 
                 public function __invoke(EmailEvent $event): void
                 {
@@ -205,9 +195,7 @@ final class AsyncDispatchTest extends TestCase
     {
         return new class ($services) implements ContainerInterface {
             /** @param array<string, mixed> $services */
-            public function __construct(private readonly array $services)
-            {
-            }
+            public function __construct(private readonly array $services) {}
 
             public function get(string $id): mixed
             {
@@ -228,6 +216,5 @@ final readonly class EmailEvent
 {
     public function __construct(
         public string $email,
-    ) {
-    }
+    ) {}
 }

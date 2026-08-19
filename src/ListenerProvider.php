@@ -8,9 +8,10 @@ declare(strict_types=1);
  * Supports event class hierarchy: a listener on a parent class
  * will be triggered by events of any subclass.
  *
- * Note: getListenersForEvent() returns ListenerEntry objects (not plain callables)
- * so the paired EventDispatcher can access async/priority/enabled metadata.
- * This provider is designed to be used with PHPdot's EventDispatcher.
+ * getListenersForEvent() honors the PSR-14 contract and yields plain
+ * callables any dispatcher can invoke; the async/priority/enabled metadata
+ * lives on ListenerEntry, which PHPdot's own EventDispatcher reads via
+ * entriesForEvent() instead.
  *
  * @author Omar Hamdan <omar@phpdot.com>
  * @license MIT
@@ -20,6 +21,8 @@ namespace PHPdot\Event;
 
 use PHPdot\Event\Contract\ListenerRepositoryInterface;
 use PHPdot\Event\DTO\ListenerEntry;
+use PHPdot\Event\Exception\ListenerException;
+use Psr\Container\ContainerInterface;
 use Psr\EventDispatcher\ListenerProviderInterface;
 
 final class ListenerProvider implements ListenerProviderInterface
@@ -35,15 +38,52 @@ final class ListenerProvider implements ListenerProviderInterface
     private array $resolvedCache = [];
 
     /**
-     * Get listeners for an event, sorted by order.
+     * Wire the optional handler resolver for foreign PSR-14 dispatchers.
+     *
+     * @param ContainerInterface|null $container Resolves handler classes when a
+     *                                           dispatcher consumes getListenersForEvent(); without one, handlers are
+     *                                           constructed with `new` and must be dependency-free
+     */
+    public function __construct(
+        private readonly ContainerInterface|null $container = null,
+    ) {}
+
+    /**
+     * Get listeners for an event as PSR-14 callables.
+     *
+     * Yields one invoker per enabled entry, sorted by order: each resolves the
+     * handler (from the container when one was provided, otherwise by
+     * zero-argument construction) and calls it with the event. A dispatcher
+     * consuming this method runs every listener synchronously — the async and
+     * priority metadata is a PHPdot EventDispatcher concern, served by
+     * entriesForEvent() without this wrapping.
+     *
+     * @return iterable<callable(object): void>
+     */
+    public function getListenersForEvent(object $event): iterable
+    {
+        foreach ($this->entriesForEvent($event) as $entry) {
+            if (!$entry->enabled) {
+                continue;
+            }
+
+            yield function (object $event) use ($entry): void {
+                $handler = $this->resolveHandler($entry, $event::class);
+                $handler($event);
+            };
+        }
+    }
+
+    /**
+     * Get listener entries for an event, sorted by order.
      *
      * Returns ListenerEntry objects sorted by order (ascending).
      * Matches the event's exact class and all parent classes/interfaces.
      * Results are cached until listeners change.
      *
-     * @return iterable<ListenerEntry>
+     * @return list<ListenerEntry>
      */
-    public function getListenersForEvent(object $event): iterable
+    public function entriesForEvent(object $event): array
     {
         $class = $event::class;
 
@@ -201,6 +241,43 @@ final class ListenerProvider implements ListenerProviderInterface
         }
 
         return $entries;
+    }
+
+    /**
+     * Resolve a listener entry's handler into an invokable.
+     *
+     * @param ListenerEntry $entry
+     * @param string $eventClass
+     *
+     * @throws ListenerException If the handler cannot be resolved or is not callable.
+     *
+     * @return callable
+     */
+    private function resolveHandler(ListenerEntry $entry, string $eventClass): callable
+    {
+        if ($this->container !== null) {
+            $handler = $this->container->get($entry->handlerClass);
+        } else {
+            if (!class_exists($entry->handlerClass)) {
+                throw new ListenerException(
+                    "Listener '{$entry->handlerClass}' does not exist",
+                    $entry->handlerClass,
+                    $eventClass,
+                );
+            }
+
+            $handler = new ($entry->handlerClass)();
+        }
+
+        if (!is_callable($handler)) {
+            throw new ListenerException(
+                "Listener '{$entry->handlerClass}' is not callable",
+                $entry->handlerClass,
+                $eventClass,
+            );
+        }
+
+        return $handler;
     }
 
     /**

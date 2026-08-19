@@ -17,7 +17,7 @@ final class ListenerProviderTest extends TestCase
     {
         $provider = new ListenerProvider();
 
-        $listeners = iterator_to_array($provider->getListenersForEvent(new SimpleEvent()));
+        $listeners = $provider->entriesForEvent(new SimpleEvent());
 
         self::assertSame([], $listeners);
     }
@@ -28,7 +28,7 @@ final class ListenerProviderTest extends TestCase
         $provider = new ListenerProvider();
         $provider->addListener(SimpleEvent::class, 'HandlerA');
 
-        $listeners = iterator_to_array($provider->getListenersForEvent(new SimpleEvent()));
+        $listeners = $provider->entriesForEvent(new SimpleEvent());
 
         self::assertCount(1, $listeners);
         self::assertSame('HandlerA', $listeners[0]->handlerClass);
@@ -42,7 +42,7 @@ final class ListenerProviderTest extends TestCase
         $provider->addListener(SimpleEvent::class, 'HandlerA', order: 1);
         $provider->addListener(SimpleEvent::class, 'HandlerB', order: 2);
 
-        $listeners = iterator_to_array($provider->getListenersForEvent(new SimpleEvent()));
+        $listeners = $provider->entriesForEvent(new SimpleEvent());
 
         self::assertSame('HandlerA', $listeners[0]->handlerClass);
         self::assertSame('HandlerB', $listeners[1]->handlerClass);
@@ -55,7 +55,7 @@ final class ListenerProviderTest extends TestCase
         $provider = new ListenerProvider();
         $provider->addListener(SimpleEvent::class, 'AsyncHandler', async: true, priority: 7);
 
-        $listeners = iterator_to_array($provider->getListenersForEvent(new SimpleEvent()));
+        $listeners = $provider->entriesForEvent(new SimpleEvent());
 
         self::assertTrue($listeners[0]->async);
         self::assertSame(7, $listeners[0]->priority);
@@ -71,8 +71,8 @@ final class ListenerProviderTest extends TestCase
             new ListenerEntry(AnotherEvent::class, 'HandlerC', order: 1),
         ]);
 
-        $simpleListeners = iterator_to_array($provider->getListenersForEvent(new SimpleEvent()));
-        $anotherListeners = iterator_to_array($provider->getListenersForEvent(new AnotherEvent()));
+        $simpleListeners = $provider->entriesForEvent(new SimpleEvent());
+        $anotherListeners = $provider->entriesForEvent(new AnotherEvent());
 
         self::assertCount(2, $simpleListeners);
         self::assertCount(1, $anotherListeners);
@@ -136,7 +136,7 @@ final class ListenerProviderTest extends TestCase
         $provider = new ListenerProvider();
         $provider->addListener(BaseEvent::class, 'BaseHandler');
 
-        $listeners = iterator_to_array($provider->getListenersForEvent(new ChildEvent()));
+        $listeners = $provider->entriesForEvent(new ChildEvent());
 
         self::assertCount(1, $listeners);
         self::assertSame('BaseHandler', $listeners[0]->handlerClass);
@@ -148,7 +148,7 @@ final class ListenerProviderTest extends TestCase
         $provider = new ListenerProvider();
         $provider->addListener(EventInterface::class, 'InterfaceHandler');
 
-        $listeners = iterator_to_array($provider->getListenersForEvent(new InterfaceEvent()));
+        $listeners = $provider->entriesForEvent(new InterfaceEvent());
 
         self::assertCount(1, $listeners);
         self::assertSame('InterfaceHandler', $listeners[0]->handlerClass);
@@ -161,7 +161,7 @@ final class ListenerProviderTest extends TestCase
         $provider->addListener(ChildEvent::class, 'ExactHandler', order: 1);
         $provider->addListener(BaseEvent::class, 'ParentHandler', order: 2);
 
-        $listeners = iterator_to_array($provider->getListenersForEvent(new ChildEvent()));
+        $listeners = $provider->entriesForEvent(new ChildEvent());
 
         self::assertCount(2, $listeners);
         self::assertSame('ExactHandler', $listeners[0]->handlerClass);
@@ -222,8 +222,8 @@ final class ListenerProviderTest extends TestCase
         $provider->addListener(SimpleEvent::class, 'SharedHandler', order: 1);
         $provider->addListener(AnotherEvent::class, 'SharedHandler', order: 1);
 
-        $simpleListeners = iterator_to_array($provider->getListenersForEvent(new SimpleEvent()));
-        $anotherListeners = iterator_to_array($provider->getListenersForEvent(new AnotherEvent()));
+        $simpleListeners = $provider->entriesForEvent(new SimpleEvent());
+        $anotherListeners = $provider->entriesForEvent(new AnotherEvent());
 
         self::assertCount(1, $simpleListeners);
         self::assertCount(1, $anotherListeners);
@@ -237,7 +237,7 @@ final class ListenerProviderTest extends TestCase
         $provider->addListener(SimpleEvent::class, 'DefaultHandler', order: 0);
         $provider->addListener(SimpleEvent::class, 'LateHandler', order: 10);
 
-        $listeners = iterator_to_array($provider->getListenersForEvent(new SimpleEvent()));
+        $listeners = $provider->entriesForEvent(new SimpleEvent());
 
         self::assertSame('EarlyHandler', $listeners[0]->handlerClass);
         self::assertSame('DefaultHandler', $listeners[1]->handlerClass);
@@ -252,35 +252,96 @@ final class ListenerProviderTest extends TestCase
         $provider->addListener(SimpleEvent::class, 'HandlerB', order: 0);
         $provider->addListener(SimpleEvent::class, 'HandlerC', order: 0);
 
-        $listeners = iterator_to_array($provider->getListenersForEvent(new SimpleEvent()));
+        $listeners = $provider->entriesForEvent(new SimpleEvent());
 
         // usort is not stable in PHP — order among same-order entries is undefined
         self::assertCount(3, $listeners);
+    }
+
+    #[Test]
+    public function it_yields_psr14_callables_that_invoke_handlers(): void
+    {
+        RecordingHandler::$events = [];
+        $provider = new ListenerProvider();
+        $provider->addListener(SimpleEvent::class, RecordingHandler::class);
+
+        foreach ($provider->getListenersForEvent(new SimpleEvent()) as $listener) {
+            self::assertIsCallable($listener);
+            $listener(new SimpleEvent());
+        }
+
+        self::assertSame([SimpleEvent::class], RecordingHandler::$events);
+    }
+
+    #[Test]
+    public function it_skips_disabled_entries_in_the_psr14_view(): void
+    {
+        $provider = new ListenerProvider();
+        $provider->load([
+            new ListenerEntry(
+                eventClass: SimpleEvent::class,
+                handlerClass: RecordingHandler::class,
+                order: 0,
+                async: false,
+                priority: 0,
+                enabled: false,
+            ),
+        ]);
+
+        self::assertSame([], iterator_to_array($provider->getListenersForEvent(new SimpleEvent()), false));
+    }
+
+    #[Test]
+    public function it_resolves_psr14_handlers_from_the_container_when_provided(): void
+    {
+        $handler = new RecordingHandler();
+        $container = new class ($handler) implements \Psr\Container\ContainerInterface {
+            public function __construct(private readonly RecordingHandler $handler) {}
+
+            public function get(string $id): RecordingHandler
+            {
+                return $this->handler;
+            }
+
+            public function has(string $id): bool
+            {
+                return true;
+            }
+        };
+
+        RecordingHandler::$events = [];
+        $provider = new ListenerProvider($container);
+        $provider->addListener(SimpleEvent::class, RecordingHandler::class);
+
+        foreach ($provider->getListenersForEvent(new SimpleEvent()) as $listener) {
+            $listener(new SimpleEvent());
+        }
+
+        self::assertSame([SimpleEvent::class], RecordingHandler::$events);
     }
 }
 
 // ─── Test Fixtures ───
 
-class SimpleEvent
-{
-}
+class SimpleEvent {}
 
-class AnotherEvent
-{
-}
+class AnotherEvent {}
 
-class BaseEvent
-{
-}
+class BaseEvent {}
 
-class ChildEvent extends BaseEvent
-{
-}
+class ChildEvent extends BaseEvent {}
 
-interface EventInterface
-{
-}
+interface EventInterface {}
 
-class InterfaceEvent implements EventInterface
+class InterfaceEvent implements EventInterface {}
+
+class RecordingHandler
 {
+    /** @var list<string> */
+    public static array $events = [];
+
+    public function __invoke(object $event): void
+    {
+        self::$events[] = $event::class;
+    }
 }

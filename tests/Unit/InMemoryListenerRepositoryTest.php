@@ -185,7 +185,7 @@ final class InMemoryListenerRepositoryTest extends TestCase
     /**
      * @param list<ListenerEntry> $entries
      */
-    private function findEntry(array $entries, string $handlerClass): ?ListenerEntry
+    private function findEntry(array $entries, string $handlerClass): null|ListenerEntry
     {
         foreach ($entries as $entry) {
             if ($entry->handlerClass === $handlerClass) {

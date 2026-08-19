@@ -8,10 +8,10 @@ use PHPdot\Event\Contract\AsyncDispatcherInterface;
 use PHPdot\Event\Event\StoppableEvent;
 use PHPdot\Event\EventDispatcher;
 use PHPdot\Event\ListenerProvider;
-use Psr\Container\ContainerInterface;
-use Psr\Log\NullLogger;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Psr\Container\ContainerInterface;
+use Psr\Log\NullLogger;
 
 final class StopPropagationTest extends TestCase
 {
@@ -28,9 +28,7 @@ final class StopPropagationTest extends TestCase
         $services = [
             'apiResolver' => new class ($log) {
                 /** @param list<string> $log */
-                public function __construct(private array &$log)
-                {
-                }
+                public function __construct(private array &$log) {}
 
                 public function __invoke(RouteMatchEvent $event): void
                 {
@@ -43,9 +41,7 @@ final class StopPropagationTest extends TestCase
             },
             'webResolver' => new class ($log) {
                 /** @param list<string> $log */
-                public function __construct(private array &$log)
-                {
-                }
+                public function __construct(private array &$log) {}
 
                 public function __invoke(RouteMatchEvent $event): void
                 {
@@ -55,9 +51,7 @@ final class StopPropagationTest extends TestCase
             },
             'fallbackResolver' => new class ($log) {
                 /** @param list<string> $log */
-                public function __construct(private array &$log)
-                {
-                }
+                public function __construct(private array &$log) {}
 
                 public function __invoke(RouteMatchEvent $event): void
                 {
@@ -87,9 +81,7 @@ final class StopPropagationTest extends TestCase
         $services = [
             'apiResolver' => new class ($log) {
                 /** @param list<string> $log */
-                public function __construct(private array &$log)
-                {
-                }
+                public function __construct(private array &$log) {}
 
                 public function __invoke(RouteMatchEvent $event): void
                 {
@@ -102,9 +94,7 @@ final class StopPropagationTest extends TestCase
             },
             'webResolver' => new class ($log) {
                 /** @param list<string> $log */
-                public function __construct(private array &$log)
-                {
-                }
+                public function __construct(private array &$log) {}
 
                 public function __invoke(RouteMatchEvent $event): void
                 {
@@ -135,9 +125,7 @@ final class StopPropagationTest extends TestCase
         $services = [
             'handlerA' => new class ($log) {
                 /** @param list<string> $log */
-                public function __construct(private array &$log)
-                {
-                }
+                public function __construct(private array &$log) {}
 
                 public function __invoke(object $event): void
                 {
@@ -146,9 +134,7 @@ final class StopPropagationTest extends TestCase
             },
             'handlerB' => new class ($log) {
                 /** @param list<string> $log */
-                public function __construct(private array &$log)
-                {
-                }
+                public function __construct(private array &$log) {}
 
                 public function __invoke(object $event): void
                 {
@@ -169,9 +155,7 @@ final class StopPropagationTest extends TestCase
         $asyncPublished = false;
 
         $async = new class ($asyncPublished) implements AsyncDispatcherInterface {
-            public function __construct(private bool &$published)
-            {
-            }
+            public function __construct(private bool &$published) {}
 
             public function publishAsync(object $event, string $handlerClass, int $priority = 0): void
             {
@@ -207,9 +191,7 @@ final class StopPropagationTest extends TestCase
     {
         $container = $this->createContainer($services);
         $async = new class implements AsyncDispatcherInterface {
-            public function publishAsync(object $event, string $handlerClass, int $priority = 0): void
-            {
-            }
+            public function publishAsync(object $event, string $handlerClass, int $priority = 0): void {}
         };
 
         return new EventDispatcher($provider, $container, $async, new NullLogger());
@@ -222,9 +204,7 @@ final class StopPropagationTest extends TestCase
     {
         return new class ($services) implements ContainerInterface {
             /** @param array<string, mixed> $services */
-            public function __construct(private readonly array $services)
-            {
-            }
+            public function __construct(private readonly array $services) {}
 
             public function get(string $id): mixed
             {
@@ -247,10 +227,7 @@ final class RouteMatchEvent extends StoppableEvent
 
     public function __construct(
         public readonly string $path,
-    ) {
-    }
+    ) {}
 }
 
-final class NonStoppableEvent
-{
-}
+final class NonStoppableEvent {}

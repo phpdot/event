@@ -11,11 +11,10 @@ use PHPdot\Event\EventDispatcher;
 use PHPdot\Event\Exception\AsyncDispatchException;
 use PHPdot\Event\Exception\ListenerException;
 use PHPdot\Event\ListenerProvider;
-use Psr\Container\ContainerInterface;
-use Psr\Log\LoggerInterface;
-use Psr\Log\NullLogger;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Psr\Container\ContainerInterface;
+use Psr\Log\NullLogger;
 
 final class EventDispatcherTest extends TestCase
 {
@@ -24,9 +23,7 @@ final class EventDispatcherTest extends TestCase
     {
         $called = false;
         $handler = new class ($called) {
-            public function __construct(private bool &$called)
-            {
-            }
+            public function __construct(private bool &$called) {}
 
             public function __invoke(object $event): void
             {
@@ -64,9 +61,7 @@ final class EventDispatcherTest extends TestCase
 
         $handlerA = new class ($order) {
             /** @param list<string> $order */
-            public function __construct(private array &$order)
-            {
-            }
+            public function __construct(private array &$order) {}
 
             public function __invoke(object $event): void
             {
@@ -76,9 +71,7 @@ final class EventDispatcherTest extends TestCase
 
         $handlerB = new class ($order) {
             /** @param list<string> $order */
-            public function __construct(private array &$order)
-            {
-            }
+            public function __construct(private array &$order) {}
 
             public function __invoke(object $event): void
             {
@@ -88,9 +81,7 @@ final class EventDispatcherTest extends TestCase
 
         $handlerC = new class ($order) {
             /** @param list<string> $order */
-            public function __construct(private array &$order)
-            {
-            }
+            public function __construct(private array &$order) {}
 
             public function __invoke(object $event): void
             {
@@ -121,9 +112,7 @@ final class EventDispatcherTest extends TestCase
         $published = [];
         $async = new class ($published) implements AsyncDispatcherInterface {
             /** @param list<array{event: object, handler: string, priority: int}> $published */
-            public function __construct(private array &$published)
-            {
-            }
+            public function __construct(private array &$published) {}
 
             public function publishAsync(object $event, string $handlerClass, int $priority = 0): void
             {
@@ -149,9 +138,7 @@ final class EventDispatcherTest extends TestCase
         $asyncPublished = false;
 
         $syncHandler = new class ($syncCalled) {
-            public function __construct(private bool &$called)
-            {
-            }
+            public function __construct(private bool &$called) {}
 
             public function __invoke(object $event): void
             {
@@ -160,9 +147,7 @@ final class EventDispatcherTest extends TestCase
         };
 
         $async = new class ($asyncPublished) implements AsyncDispatcherInterface {
-            public function __construct(private bool &$published)
-            {
-            }
+            public function __construct(private bool &$published) {}
 
             public function publishAsync(object $event, string $handlerClass, int $priority = 0): void
             {
@@ -189,9 +174,7 @@ final class EventDispatcherTest extends TestCase
         $handlerBCalled = false;
 
         $handlerA = new class ($handlerACalled) {
-            public function __construct(private bool &$called)
-            {
-            }
+            public function __construct(private bool &$called) {}
 
             public function __invoke(TestStoppableEvent $event): void
             {
@@ -201,9 +184,7 @@ final class EventDispatcherTest extends TestCase
         };
 
         $handlerB = new class ($handlerBCalled) {
-            public function __construct(private bool &$called)
-            {
-            }
+            public function __construct(private bool &$called) {}
 
             public function __invoke(object $event): void
             {
@@ -231,9 +212,7 @@ final class EventDispatcherTest extends TestCase
     {
         $called = false;
         $handler = new class ($called) {
-            public function __construct(private bool &$called)
-            {
-            }
+            public function __construct(private bool &$called) {}
 
             public function __invoke(object $event): void
             {
@@ -259,9 +238,7 @@ final class EventDispatcherTest extends TestCase
     {
         $called = false;
         $handler = new class ($called) {
-            public function __construct(private bool &$called)
-            {
-            }
+            public function __construct(private bool &$called) {}
 
             public function __invoke(object $event): void
             {
@@ -352,9 +329,7 @@ final class EventDispatcherTest extends TestCase
         $logMessages = [];
         $logger = new class ($logMessages) extends NullLogger {
             /** @param list<array{level: string, message: string}> $messages */
-            public function __construct(private array &$messages)
-            {
-            }
+            public function __construct(private array &$messages) {}
 
             /** @param array<string, mixed> $context */
             public function debug(string|\Stringable $message, array $context = []): void
@@ -364,9 +339,7 @@ final class EventDispatcherTest extends TestCase
         };
 
         $handler = new class {
-            public function __invoke(object $event): void
-            {
-            }
+            public function __invoke(object $event): void {}
         };
 
         $provider = new ListenerProvider();
@@ -388,9 +361,7 @@ final class EventDispatcherTest extends TestCase
         $logMessages = [];
         $logger = new class ($logMessages) extends NullLogger {
             /** @param list<array{level: string, message: string}> $messages */
-            public function __construct(private array &$messages)
-            {
-            }
+            public function __construct(private array &$messages) {}
 
             /** @param array<string, mixed> $context */
             public function error(string|\Stringable $message, array $context = []): void
@@ -464,14 +435,11 @@ final class EventDispatcherTest extends TestCase
     {
         return new class ($services) implements ContainerInterface {
             /** @param array<string, mixed> $services */
-            public function __construct(private readonly array $services)
-            {
-            }
+            public function __construct(private readonly array $services) {}
 
             public function get(string $id): mixed
             {
-                return $this->services[$id] ?? throw new class extends \RuntimeException implements \Psr\Container\NotFoundExceptionInterface {
-                };
+                return $this->services[$id] ?? throw new class extends \RuntimeException implements \Psr\Container\NotFoundExceptionInterface {};
             }
 
             public function has(string $id): bool
@@ -489,9 +457,7 @@ final class EventDispatcherTest extends TestCase
     private function createNullAsync(): AsyncDispatcherInterface
     {
         return new class implements AsyncDispatcherInterface {
-            public function publishAsync(object $event, string $handlerClass, int $priority = 0): void
-            {
-            }
+            public function publishAsync(object $event, string $handlerClass, int $priority = 0): void {}
         };
     }
 }
@@ -500,14 +466,10 @@ final class EventDispatcherTest extends TestCase
 
 final readonly class TestEvent
 {
-    public function __construct(public string $data)
-    {
-    }
+    public function __construct(public string $data) {}
 }
 
-final class TestStoppableEvent extends StoppableEvent
-{
-}
+final class TestStoppableEvent extends StoppableEvent {}
 
 final class MutableEvent
 {
