@@ -4,21 +4,21 @@ declare(strict_types=1);
 
 namespace PHPdot\Event\Tests\Integration;
 
-use PHPdot\Event\Contract\AsyncDispatcherInterface;
+use PHPdot\Contracts\Event\AsyncDispatcherInterface;
 use PHPdot\Event\DTO\ListenerEntry;
 use PHPdot\Event\EventDispatcher;
 use PHPdot\Event\Exception\AsyncDispatchException;
 use PHPdot\Event\ListenerProvider;
 use PHPdot\Event\Provider\SyncOnlyDispatcher;
+use PHPdot\Event\Tests\Support\RecordingTracer;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
-use Psr\Log\NullLogger;
 
 final class AsyncDispatchTest extends TestCase
 {
     #[Test]
-    public function it_publishes_async_listener_with_priority(): void
+    public function publishes_async_listener_with_priority(): void
     {
         $published = [];
 
@@ -43,7 +43,7 @@ final class AsyncDispatchTest extends TestCase
         ]);
 
         $container = $this->createEmptyContainer();
-        $dispatcher = new EventDispatcher($provider, $container, $async, new NullLogger());
+        $dispatcher = new EventDispatcher($provider, $container, $async, new RecordingTracer());
 
         $dispatcher->dispatch(new EmailEvent('omar@test.com'));
 
@@ -55,7 +55,7 @@ final class AsyncDispatchTest extends TestCase
     }
 
     #[Test]
-    public function it_passes_event_object_to_async_dispatcher(): void
+    public function passes_event_object_to_async_dispatcher(): void
     {
         $receivedEvent = null;
 
@@ -71,7 +71,7 @@ final class AsyncDispatchTest extends TestCase
         $provider = new ListenerProvider();
         $provider->addListener(EmailEvent::class, 'handler', async: true);
 
-        $dispatcher = new EventDispatcher($provider, $this->createEmptyContainer(), $async, new NullLogger());
+        $dispatcher = new EventDispatcher($provider, $this->createEmptyContainer(), $async, new RecordingTracer());
 
         $event = new EmailEvent('omar@test.com');
         $dispatcher->dispatch($event);
@@ -82,7 +82,7 @@ final class AsyncDispatchTest extends TestCase
     }
 
     #[Test]
-    public function it_throws_async_dispatch_exception_on_failure(): void
+    public function throws_async_dispatch_exception_on_failure(): void
     {
         $async = new class implements AsyncDispatcherInterface {
             public function publishAsync(object $event, string $handlerClass, int $priority = 0): void
@@ -94,7 +94,7 @@ final class AsyncDispatchTest extends TestCase
         $provider = new ListenerProvider();
         $provider->addListener(EmailEvent::class, 'handler', async: true);
 
-        $dispatcher = new EventDispatcher($provider, $this->createEmptyContainer(), $async, new NullLogger());
+        $dispatcher = new EventDispatcher($provider, $this->createEmptyContainer(), $async, new RecordingTracer());
 
         try {
             $dispatcher->dispatch(new EmailEvent('test@test.com'));
@@ -107,7 +107,7 @@ final class AsyncDispatchTest extends TestCase
     }
 
     #[Test]
-    public function it_does_not_call_sync_handler_for_async_entry(): void
+    public function does_not_call_sync_handler_for_async_entry(): void
     {
         $syncCalled = false;
 
@@ -133,7 +133,7 @@ final class AsyncDispatchTest extends TestCase
         ];
 
         $container = $this->createContainer($services);
-        $dispatcher = new EventDispatcher($provider, $container, $async, new NullLogger());
+        $dispatcher = new EventDispatcher($provider, $container, $async, new RecordingTracer());
 
         $dispatcher->dispatch(new EmailEvent('test@test.com'));
 
@@ -175,7 +175,7 @@ final class AsyncDispatchTest extends TestCase
             new ListenerEntry(EmailEvent::class, 'handlerB', async: true, priority: 1, order: 2),
         ]);
 
-        $dispatcher = new EventDispatcher($provider, $container, $async, new NullLogger());
+        $dispatcher = new EventDispatcher($provider, $container, $async, new RecordingTracer());
         $dispatcher->dispatch(new EmailEvent('omar@test.com'));
 
         self::assertSame(['A:omar@test.com', 'B:omar@test.com'], $results);

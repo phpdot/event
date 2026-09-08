@@ -19,12 +19,21 @@ declare(strict_types=1);
 
 namespace PHPdot\Event;
 
+use PHPdot\Container\Attribute\Binds;
+use PHPdot\Container\Attribute\Singleton;
 use PHPdot\Event\Contract\ListenerRepositoryInterface;
 use PHPdot\Event\DTO\ListenerEntry;
 use PHPdot\Event\Exception\ListenerException;
 use Psr\Container\ContainerInterface;
 use Psr\EventDispatcher\ListenerProviderInterface;
 
+/**
+ * Boot-built and then read-only for the worker's life: load(), loadFromRepository(),
+ * addListener(), and removeListeners() belong to boot (or tests). A runtime write
+ * lands in one Swoole worker only — invisible to the others and gone on reload.
+ */
+#[Singleton]
+#[Binds(ListenerProviderInterface::class)]
 final class ListenerProvider implements ListenerProviderInterface
 {
     /**

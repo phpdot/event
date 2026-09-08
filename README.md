@@ -18,9 +18,12 @@ the listener set is resolved through a repository so it can be persisted and tog
 | Requirement | Constraint |
 |---|---|
 | PHP | `>= 8.5` |
+| `phpdot/attribute` | `^0.3` |
+| `phpdot/console` | `^0.3` |
+| `phpdot/contracts` | `^0.3` |
 | `psr/container` | `^2.0` |
 | `psr/event-dispatcher` | `^1.0` |
-| `psr/log` | `^3.0` |
+| `symfony/console` | `^8.0` |
 
 ## Installation
 
@@ -55,27 +58,49 @@ final class SendWelcomeEmail
 }
 ```
 
+### Discovery and wiring
+
+The attribute is the whole registration — `AttributeListenerDiscovery` scans with
+`phpdot/attribute` and answers the entries boot loads. Nothing else re-states the binding:
+
+```php
+use PHPdot\Event\Discovery\AttributeListenerDiscovery;
+use PHPdot\Event\ListenerProvider;
+
+$discovery = new AttributeListenerDiscovery([$appPath . '/Listeners', $srcPath]);
+$provider = new ListenerProvider($container);
+$provider->load($discovery->discover());
+```
+
+Every service carries `#[Singleton]`/`#[Binds]` — in a phpdot application the PSR-14 interfaces
+resolve from the container; `event:list` prints the discovered surface (event, listener, order,
+mode) with `--event <name>` to filter.
+
+Fail-loud at boot: a declared event that is not a class, or a priority outside 0-10, is a
+`ListenerException` naming the listener — never a silent listener that never fires.
+
 ### Dispatching
 
 ```php
-use PHPdot\Event\EventDispatcher;
-use PHPdot\Event\ListenerProvider;
-
-$provider = new ListenerProvider();
-$provider->addListener(UserRegistered::class, SendWelcomeEmail::class, order: 1);
-
-$dispatcher = new EventDispatcher($provider, $container, $asyncDispatcher, $logger);
 $dispatcher->dispatch(new UserRegistered(userId: 1, email: 'omar@example.com'));
 ```
 
-Listeners run in `order` (lowest first). An event implementing `StoppableEventInterface` halts the chain
-once propagation is stopped, per PSR-14.
+Dispatch runs two phases: every sync listener first, in `order` (lowest first), with
+`StoppableEventInterface` semantics honored per PSR-14 — then every async listener is handed to
+the `AsyncDispatcherInterface` in order. Propagation stop halts everything after it, async
+listeners included; an async listener ordered before the stopper still publishes. Every dispatch
+carries a span (`event.dispatch` on the `event` channel) with one `event.listener` event per
+listener — observability through `phpdot/contracts`, per the v0.3.0 doctrine.
 
 ### Async listeners
 
-A listener marked `#[Listener(..., async: true)]` is handed to the injected `AsyncDispatcherInterface`
-instead of running inline. `SyncOnlyDispatcher` is the built-in fallback that resolves and runs the
-handler synchronously; a Swoole or queue-backed implementation can dispatch it off the request path.
+A listener marked `#[Listener(..., async: true)]` is handed to the injected
+`AsyncDispatcherInterface` instead of running inline. `SyncOnlyDispatcher` is the shipped
+fallback: **publish means run, immediately, inline after the sync phase** — priority is ignored
+(there is no queue to order) and a handler failure is a `ListenerException` (it ran — never
+disguised as a queue failure). Bind a queue backend when timing matters — whichever broker the
+application installed; the dispatcher publishes, the application's worker
+consumes.
 
 ## Architecture
 

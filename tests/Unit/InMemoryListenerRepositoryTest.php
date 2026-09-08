@@ -12,7 +12,7 @@ use PHPUnit\Framework\TestCase;
 final class InMemoryListenerRepositoryTest extends TestCase
 {
     #[Test]
-    public function it_starts_empty(): void
+    public function starts_empty(): void
     {
         $repo = new InMemoryListenerRepository();
 
@@ -20,7 +20,7 @@ final class InMemoryListenerRepositoryTest extends TestCase
     }
 
     #[Test]
-    public function it_saves_and_retrieves_entry(): void
+    public function saves_and_retrieves_entry(): void
     {
         $repo = new InMemoryListenerRepository();
         $entry = new ListenerEntry('EventA', 'HandlerA');
@@ -32,7 +32,7 @@ final class InMemoryListenerRepositoryTest extends TestCase
     }
 
     #[Test]
-    public function it_updates_existing_entry_on_save(): void
+    public function updates_existing_entry_on_save(): void
     {
         $repo = new InMemoryListenerRepository();
         $repo->save(new ListenerEntry('EventA', 'HandlerA', order: 1));
@@ -43,7 +43,7 @@ final class InMemoryListenerRepositoryTest extends TestCase
     }
 
     #[Test]
-    public function it_gets_by_event(): void
+    public function gets_by_event(): void
     {
         $repo = new InMemoryListenerRepository();
         $repo->save(new ListenerEntry('EventA', 'HandlerA'));
@@ -56,7 +56,7 @@ final class InMemoryListenerRepositoryTest extends TestCase
     }
 
     #[Test]
-    public function it_returns_empty_for_unknown_event(): void
+    public function returns_empty_for_unknown_event(): void
     {
         $repo = new InMemoryListenerRepository();
 
@@ -64,7 +64,7 @@ final class InMemoryListenerRepositoryTest extends TestCase
     }
 
     #[Test]
-    public function it_sets_enabled(): void
+    public function sets_enabled(): void
     {
         $repo = new InMemoryListenerRepository();
         $repo->save(new ListenerEntry('EventA', 'HandlerA', enabled: true));
@@ -75,7 +75,7 @@ final class InMemoryListenerRepositoryTest extends TestCase
     }
 
     #[Test]
-    public function it_sets_order(): void
+    public function sets_order(): void
     {
         $repo = new InMemoryListenerRepository();
         $repo->save(new ListenerEntry('EventA', 'HandlerA', order: 1));
@@ -86,7 +86,7 @@ final class InMemoryListenerRepositoryTest extends TestCase
     }
 
     #[Test]
-    public function it_deletes_entry(): void
+    public function deletes_entry(): void
     {
         $repo = new InMemoryListenerRepository();
         $repo->save(new ListenerEntry('EventA', 'HandlerA'));
@@ -99,7 +99,7 @@ final class InMemoryListenerRepositoryTest extends TestCase
     }
 
     #[Test]
-    public function it_syncs_discovered_entries(): void
+    public function syncs_discovered_entries(): void
     {
         $repo = new InMemoryListenerRepository();
 
@@ -135,7 +135,7 @@ final class InMemoryListenerRepositoryTest extends TestCase
     }
 
     #[Test]
-    public function it_ignores_set_enabled_for_missing_entry(): void
+    public function ignores_set_enabled_for_missing_entry(): void
     {
         $repo = new InMemoryListenerRepository();
         $repo->setEnabled('Missing', 'Missing', false);
@@ -144,7 +144,7 @@ final class InMemoryListenerRepositoryTest extends TestCase
     }
 
     #[Test]
-    public function it_ignores_set_order_for_missing_entry(): void
+    public function ignores_set_order_for_missing_entry(): void
     {
         $repo = new InMemoryListenerRepository();
         $repo->setOrder('Missing', 'Missing', 5);
@@ -153,7 +153,7 @@ final class InMemoryListenerRepositoryTest extends TestCase
     }
 
     #[Test]
-    public function it_preserves_other_fields_on_set_enabled(): void
+    public function preserves_other_fields_on_set_enabled(): void
     {
         $repo = new InMemoryListenerRepository();
         $repo->save(new ListenerEntry('E', 'H', order: 5, async: true, priority: 7, enabled: true));
@@ -168,7 +168,7 @@ final class InMemoryListenerRepositoryTest extends TestCase
     }
 
     #[Test]
-    public function it_preserves_other_fields_on_set_order(): void
+    public function preserves_other_fields_on_set_order(): void
     {
         $repo = new InMemoryListenerRepository();
         $repo->save(new ListenerEntry('E', 'H', order: 1, async: true, priority: 3, enabled: false));

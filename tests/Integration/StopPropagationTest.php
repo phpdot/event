@@ -4,19 +4,19 @@ declare(strict_types=1);
 
 namespace PHPdot\Event\Tests\Integration;
 
-use PHPdot\Event\Contract\AsyncDispatcherInterface;
+use PHPdot\Contracts\Event\AsyncDispatcherInterface;
 use PHPdot\Event\Event\StoppableEvent;
 use PHPdot\Event\EventDispatcher;
 use PHPdot\Event\ListenerProvider;
+use PHPdot\Event\Tests\Support\RecordingTracer;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
-use Psr\Log\NullLogger;
 
 final class StopPropagationTest extends TestCase
 {
     #[Test]
-    public function it_stops_after_first_match(): void
+    public function stops_after_first_match(): void
     {
         $log = [];
 
@@ -70,7 +70,7 @@ final class StopPropagationTest extends TestCase
     }
 
     #[Test]
-    public function it_continues_when_not_stopped(): void
+    public function continues_when_not_stopped(): void
     {
         $log = [];
 
@@ -114,7 +114,7 @@ final class StopPropagationTest extends TestCase
     }
 
     #[Test]
-    public function it_does_not_stop_non_stoppable_events(): void
+    public function does_not_stop_non_stoppable_events(): void
     {
         $log = [];
 
@@ -150,7 +150,7 @@ final class StopPropagationTest extends TestCase
     }
 
     #[Test]
-    public function it_also_stops_async_dispatches(): void
+    public function also_stops_async_dispatches(): void
     {
         $asyncPublished = false;
 
@@ -175,11 +175,44 @@ final class StopPropagationTest extends TestCase
         };
 
         $container = $this->createContainer(['stopper' => $stopper]);
-        $dispatcher = new EventDispatcher($provider, $container, $async, new NullLogger());
+        $dispatcher = new EventDispatcher($provider, $container, $async, new RecordingTracer());
 
         $dispatcher->dispatch(new RouteMatchEvent('/test'));
 
-        self::assertFalse($asyncPublished);
+        self::assertFalse($asyncPublished, 'propagation stop halts every later listener, async ones included');
+    }
+
+    #[Test]
+    public function anAsyncListenerOrderedBeforeTheStopperStillPublishes(): void
+    {
+        $published = [];
+        $async = new class ($published) implements AsyncDispatcherInterface {
+            /** @param list<string> $published */
+            public function __construct(private array &$published) {}
+
+            public function publishAsync(object $event, string $handlerClass, int $priority = 0): void
+            {
+                $this->published[] = $handlerClass;
+            }
+        };
+
+        $provider = new ListenerProvider();
+        $provider->addListener(RouteMatchEvent::class, 'asyncHandler', order: 1, async: true);
+        $provider->addListener(RouteMatchEvent::class, 'stopper', order: 2);
+
+        $stopper = new class {
+            public function __invoke(RouteMatchEvent $event): void
+            {
+                $event->stopPropagation();
+            }
+        };
+
+        $container = $this->createContainer(['stopper' => $stopper]);
+        $dispatcher = new EventDispatcher($provider, $container, $async, new RecordingTracer());
+
+        $dispatcher->dispatch(new RouteMatchEvent('/test'));
+
+        self::assertSame(['asyncHandler'], $published, 'the stopper halts only what comes after it');
     }
 
     // ─── Helpers ───
@@ -194,7 +227,7 @@ final class StopPropagationTest extends TestCase
             public function publishAsync(object $event, string $handlerClass, int $priority = 0): void {}
         };
 
-        return new EventDispatcher($provider, $container, $async, new NullLogger());
+        return new EventDispatcher($provider, $container, $async, new RecordingTracer());
     }
 
     /**

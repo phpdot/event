@@ -4,19 +4,19 @@ declare(strict_types=1);
 
 namespace PHPdot\Event\Tests\Integration;
 
-use PHPdot\Event\Contract\AsyncDispatcherInterface;
+use PHPdot\Contracts\Event\AsyncDispatcherInterface;
 use PHPdot\Event\DTO\ListenerEntry;
 use PHPdot\Event\EventDispatcher;
 use PHPdot\Event\ListenerProvider;
+use PHPdot\Event\Tests\Support\RecordingTracer;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
-use Psr\Log\NullLogger;
 
 final class OrderingTest extends TestCase
 {
     #[Test]
-    public function it_executes_in_ascending_order(): void
+    public function executes_in_ascending_order(): void
     {
         $order = [];
 
@@ -36,7 +36,7 @@ final class OrderingTest extends TestCase
     }
 
     #[Test]
-    public function it_handles_negative_order(): void
+    public function handles_negative_order(): void
     {
         $order = [];
 
@@ -56,7 +56,7 @@ final class OrderingTest extends TestCase
     }
 
     #[Test]
-    public function it_handles_large_number_of_listeners(): void
+    public function handles_large_number_of_listeners(): void
     {
         $order = [];
         $entries = [];
@@ -87,7 +87,7 @@ final class OrderingTest extends TestCase
     }
 
     #[Test]
-    public function it_orders_mixed_sync_and_async_by_order_field(): void
+    public function syncListenersRunInOrderThenAsyncOnesPublish(): void
     {
         $executionOrder = [];
 
@@ -130,14 +130,14 @@ final class OrderingTest extends TestCase
         ];
 
         $container = $this->createContainer($services);
-        $dispatcher = new EventDispatcher($provider, $container, $async, new NullLogger());
+        $dispatcher = new EventDispatcher($provider, $container, $async, new RecordingTracer());
 
         $dispatcher->dispatch(new TaskEvent());
 
         self::assertSame([
-            'async:asyncFirst',
             'sync:syncMiddle',
             'sync:syncLate',
+            'async:asyncFirst',
         ], $executionOrder);
     }
 
@@ -177,7 +177,7 @@ final class OrderingTest extends TestCase
             public function publishAsync(object $event, string $handlerClass, int $priority = 0): void {}
         };
 
-        return new EventDispatcher($provider, $container, $async, new NullLogger());
+        return new EventDispatcher($provider, $container, $async, new RecordingTracer());
     }
 
     /**

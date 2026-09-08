@@ -12,7 +12,7 @@ use Psr\EventDispatcher\StoppableEventInterface;
 final class StoppableEventTest extends TestCase
 {
     #[Test]
-    public function it_is_not_stopped_by_default(): void
+    public function is_not_stopped_by_default(): void
     {
         $event = new ConcreteStoppableEvent();
 
@@ -20,7 +20,7 @@ final class StoppableEventTest extends TestCase
     }
 
     #[Test]
-    public function it_can_be_stopped(): void
+    public function can_be_stopped(): void
     {
         $event = new ConcreteStoppableEvent();
         $event->stopPropagation();
@@ -29,7 +29,7 @@ final class StoppableEventTest extends TestCase
     }
 
     #[Test]
-    public function it_implements_psr14_interface(): void
+    public function implements_psr14_interface(): void
     {
         $event = new ConcreteStoppableEvent();
 
@@ -37,7 +37,7 @@ final class StoppableEventTest extends TestCase
     }
 
     #[Test]
-    public function it_stays_stopped_after_multiple_calls(): void
+    public function stays_stopped_after_multiple_calls(): void
     {
         $event = new ConcreteStoppableEvent();
         $event->stopPropagation();

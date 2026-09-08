@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace PHPdot\Event\Exception;
 
+use Throwable;
+
 final class AsyncDispatchException extends EventException
 {
     /**
@@ -18,16 +20,35 @@ final class AsyncDispatchException extends EventException
      * @param string $handlerClass The handler that was being queued
      * @param string $eventClass The event being dispatched
      * @param int $code Error code
-     * @param \Throwable|null $previous Previous exception
+     * @param Throwable|null $previous Previous exception
      */
     public function __construct(
         string $message,
         private readonly string $handlerClass,
         private readonly string $eventClass,
         int $code = 0,
-        null|\Throwable $previous = null,
+        null|Throwable $previous = null,
     ) {
         parent::__construct($message, $code, $previous);
+    }
+
+    /**
+     * A publish to the async backend that failed before the listener ran.
+     *
+     * @param string $handlerClass The handler that was being queued
+     * @param string $eventClass The event being dispatched
+     * @param Throwable $failure What the backend threw
+     *
+     * @return self
+     */
+    public static function publishFailed(string $handlerClass, string $eventClass, Throwable $failure): self
+    {
+        return new self(
+            "Failed to queue listener '{$handlerClass}' for event '{$eventClass}'",
+            $handlerClass,
+            $eventClass,
+            previous: $failure,
+        );
     }
 
     /**

@@ -13,7 +13,7 @@ use PHPUnit\Framework\TestCase;
 final class ListenerProviderTest extends TestCase
 {
     #[Test]
-    public function it_returns_empty_for_unknown_event(): void
+    public function returns_empty_for_unknown_event(): void
     {
         $provider = new ListenerProvider();
 
@@ -23,7 +23,7 @@ final class ListenerProviderTest extends TestCase
     }
 
     #[Test]
-    public function it_adds_and_retrieves_listener(): void
+    public function adds_and_retrieves_listener(): void
     {
         $provider = new ListenerProvider();
         $provider->addListener(SimpleEvent::class, 'HandlerA');
@@ -35,7 +35,7 @@ final class ListenerProviderTest extends TestCase
     }
 
     #[Test]
-    public function it_returns_listeners_sorted_by_order(): void
+    public function returns_listeners_sorted_by_order(): void
     {
         $provider = new ListenerProvider();
         $provider->addListener(SimpleEvent::class, 'HandlerC', order: 3);
@@ -50,7 +50,7 @@ final class ListenerProviderTest extends TestCase
     }
 
     #[Test]
-    public function it_preserves_async_and_priority(): void
+    public function preserves_async_and_priority(): void
     {
         $provider = new ListenerProvider();
         $provider->addListener(SimpleEvent::class, 'AsyncHandler', async: true, priority: 7);
@@ -62,7 +62,7 @@ final class ListenerProviderTest extends TestCase
     }
 
     #[Test]
-    public function it_loads_entries_in_bulk(): void
+    public function loads_entries_in_bulk(): void
     {
         $provider = new ListenerProvider();
         $provider->load([
@@ -79,7 +79,7 @@ final class ListenerProviderTest extends TestCase
     }
 
     #[Test]
-    public function it_checks_has_listeners(): void
+    public function checks_has_listeners(): void
     {
         $provider = new ListenerProvider();
 
@@ -92,7 +92,7 @@ final class ListenerProviderTest extends TestCase
     }
 
     #[Test]
-    public function it_removes_listeners_for_event(): void
+    public function removes_listeners_for_event(): void
     {
         $provider = new ListenerProvider();
         $provider->addListener(SimpleEvent::class, 'HandlerA');
@@ -105,7 +105,7 @@ final class ListenerProviderTest extends TestCase
     }
 
     #[Test]
-    public function it_clears_all_listeners(): void
+    public function clears_all_listeners(): void
     {
         $provider = new ListenerProvider();
         $provider->addListener(SimpleEvent::class, 'HandlerA');
@@ -117,7 +117,7 @@ final class ListenerProviderTest extends TestCase
     }
 
     #[Test]
-    public function it_returns_all_listeners(): void
+    public function returns_all_listeners(): void
     {
         $provider = new ListenerProvider();
         $provider->addListener(SimpleEvent::class, 'HandlerA');
@@ -131,7 +131,7 @@ final class ListenerProviderTest extends TestCase
     }
 
     #[Test]
-    public function it_matches_parent_class_listeners(): void
+    public function matches_parent_class_listeners(): void
     {
         $provider = new ListenerProvider();
         $provider->addListener(BaseEvent::class, 'BaseHandler');
@@ -143,7 +143,7 @@ final class ListenerProviderTest extends TestCase
     }
 
     #[Test]
-    public function it_matches_interface_listeners(): void
+    public function matches_interface_listeners(): void
     {
         $provider = new ListenerProvider();
         $provider->addListener(EventInterface::class, 'InterfaceHandler');
@@ -155,7 +155,7 @@ final class ListenerProviderTest extends TestCase
     }
 
     #[Test]
-    public function it_combines_exact_parent_and_interface_listeners(): void
+    public function combines_exact_parent_and_interface_listeners(): void
     {
         $provider = new ListenerProvider();
         $provider->addListener(ChildEvent::class, 'ExactHandler', order: 1);
@@ -169,7 +169,7 @@ final class ListenerProviderTest extends TestCase
     }
 
     #[Test]
-    public function it_loads_from_repository(): void
+    public function loads_from_repository(): void
     {
         $repo = new InMemoryListenerRepository();
         $repo->save(new ListenerEntry(SimpleEvent::class, 'HandlerA', order: 1));
@@ -183,7 +183,7 @@ final class ListenerProviderTest extends TestCase
     }
 
     #[Test]
-    public function it_merges_repository_overrides(): void
+    public function merges_repository_overrides(): void
     {
         $provider = new ListenerProvider();
         $provider->addListener(SimpleEvent::class, 'HandlerA', order: 1);
@@ -201,7 +201,7 @@ final class ListenerProviderTest extends TestCase
     }
 
     #[Test]
-    public function it_adds_new_entries_from_repository(): void
+    public function adds_new_entries_from_repository(): void
     {
         $provider = new ListenerProvider();
         $provider->addListener(SimpleEvent::class, 'HandlerA');
@@ -216,7 +216,7 @@ final class ListenerProviderTest extends TestCase
     }
 
     #[Test]
-    public function it_handles_multiple_events_from_same_handler(): void
+    public function handles_multiple_events_from_same_handler(): void
     {
         $provider = new ListenerProvider();
         $provider->addListener(SimpleEvent::class, 'SharedHandler', order: 1);
@@ -230,7 +230,7 @@ final class ListenerProviderTest extends TestCase
     }
 
     #[Test]
-    public function it_handles_negative_order(): void
+    public function handles_negative_order(): void
     {
         $provider = new ListenerProvider();
         $provider->addListener(SimpleEvent::class, 'EarlyHandler', order: -10);
@@ -245,7 +245,7 @@ final class ListenerProviderTest extends TestCase
     }
 
     #[Test]
-    public function it_preserves_insertion_order_for_same_priority(): void
+    public function preserves_insertion_order_for_same_priority(): void
     {
         $provider = new ListenerProvider();
         $provider->addListener(SimpleEvent::class, 'HandlerA', order: 0);
@@ -259,7 +259,7 @@ final class ListenerProviderTest extends TestCase
     }
 
     #[Test]
-    public function it_yields_psr14_callables_that_invoke_handlers(): void
+    public function yields_psr14_callables_that_invoke_handlers(): void
     {
         RecordingHandler::$events = [];
         $provider = new ListenerProvider();
@@ -274,7 +274,7 @@ final class ListenerProviderTest extends TestCase
     }
 
     #[Test]
-    public function it_skips_disabled_entries_in_the_psr14_view(): void
+    public function skips_disabled_entries_in_the_psr14_view(): void
     {
         $provider = new ListenerProvider();
         $provider->load([
@@ -292,7 +292,7 @@ final class ListenerProviderTest extends TestCase
     }
 
     #[Test]
-    public function it_resolves_psr14_handlers_from_the_container_when_provided(): void
+    public function resolves_psr14_handlers_from_the_container_when_provided(): void
     {
         $handler = new RecordingHandler();
         $container = new class ($handler) implements \Psr\Container\ContainerInterface {

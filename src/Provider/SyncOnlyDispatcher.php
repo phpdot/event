@@ -3,10 +3,12 @@
 declare(strict_types=1);
 
 /**
- * Sync-only fallback "async" dispatcher.
- *
- * Runs async handlers synchronously when no message queue is configured.
- * Useful for development, testing, and simple deployments.
+ * The no-queue async backend: publish means run, immediately, inline after
+ * the sync phase. Priority is meaningless here — there is no queue to order
+ * — and a handler failure is a LISTENER failure (it ran), surfacing as
+ * ListenerException, never disguised as a queue failure. Swap the
+ * AsyncDispatcherInterface binding for a queue backend when timing matters —
+ * the application binds what it installed.
  *
  * @author Omar Hamdan <omar@phpdot.com>
  * @license MIT
@@ -14,14 +16,18 @@ declare(strict_types=1);
 
 namespace PHPdot\Event\Provider;
 
-use PHPdot\Event\Contract\AsyncDispatcherInterface;
+use PHPdot\Container\Attribute\Binds;
+use PHPdot\Container\Attribute\Singleton;
+use PHPdot\Contracts\Event\AsyncDispatcherInterface;
+use PHPdot\Event\Exception\ListenerException;
 use Psr\Container\ContainerInterface;
+use Throwable;
 
+#[Singleton]
+#[Binds(AsyncDispatcherInterface::class)]
 final class SyncOnlyDispatcher implements AsyncDispatcherInterface
 {
     /**
-     * A fallback async dispatcher that resolves and runs handlers synchronously.
-     *
      * @param ContainerInterface $container Resolves handler classes to instances
      */
     public function __construct(
@@ -30,15 +36,27 @@ final class SyncOnlyDispatcher implements AsyncDispatcherInterface
 
     /**
      * Execute the handler synchronously instead of queuing it.
+     *
+     * @param object $event The event
+     * @param string $handlerClass The handler to run
+     * @param int $priority Ignored — there is no queue to order
+     *
+     * @return void
      */
     public function publishAsync(object $event, string $handlerClass, int $priority = 0): void
     {
-        $handler = $this->container->get($handlerClass);
+        try {
+            $handler = $this->container->get($handlerClass);
 
-        if (!is_callable($handler)) {
-            throw new \RuntimeException("Handler '{$handlerClass}' is not callable");
+            if (!is_callable($handler)) {
+                throw ListenerException::notCallable($handlerClass, $event::class);
+            }
+
+            $handler($event);
+        } catch (ListenerException $failure) {
+            throw $failure;
+        } catch (Throwable $failure) {
+            throw ListenerException::failed($handlerClass, $event::class, $failure);
         }
-
-        $handler($event);
     }
 }

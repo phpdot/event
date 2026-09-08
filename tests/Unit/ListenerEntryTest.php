@@ -11,7 +11,7 @@ use PHPUnit\Framework\TestCase;
 final class ListenerEntryTest extends TestCase
 {
     #[Test]
-    public function it_stores_all_fields(): void
+    public function stores_all_fields(): void
     {
         $entry = new ListenerEntry(
             eventClass: 'App\Event\UserRegistered',
@@ -31,7 +31,7 @@ final class ListenerEntryTest extends TestCase
     }
 
     #[Test]
-    public function it_has_sensible_defaults(): void
+    public function has_sensible_defaults(): void
     {
         $entry = new ListenerEntry(
             eventClass: 'App\Event\UserRegistered',
@@ -45,7 +45,7 @@ final class ListenerEntryTest extends TestCase
     }
 
     #[Test]
-    public function it_is_readonly(): void
+    public function is_readonly(): void
     {
         $reflection = new \ReflectionClass(ListenerEntry::class);
 

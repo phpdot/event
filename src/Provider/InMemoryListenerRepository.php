@@ -13,9 +13,13 @@ declare(strict_types=1);
 
 namespace PHPdot\Event\Provider;
 
+use PHPdot\Container\Attribute\Binds;
+use PHPdot\Container\Attribute\Singleton;
 use PHPdot\Event\Contract\ListenerRepositoryInterface;
 use PHPdot\Event\DTO\ListenerEntry;
 
+#[Singleton]
+#[Binds(ListenerRepositoryInterface::class)]
 final class InMemoryListenerRepository implements ListenerRepositoryInterface
 {
     /**

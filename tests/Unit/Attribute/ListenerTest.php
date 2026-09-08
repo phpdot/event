@@ -11,7 +11,7 @@ use PHPUnit\Framework\TestCase;
 final class ListenerTest extends TestCase
 {
     #[Test]
-    public function it_stores_event_class(): void
+    public function stores_event_class(): void
     {
         $listener = new Listener(event: 'App\Event\UserRegistered');
 
@@ -19,7 +19,7 @@ final class ListenerTest extends TestCase
     }
 
     #[Test]
-    public function it_has_sensible_defaults(): void
+    public function has_sensible_defaults(): void
     {
         $listener = new Listener(event: 'App\Event\UserRegistered');
 
@@ -29,7 +29,7 @@ final class ListenerTest extends TestCase
     }
 
     #[Test]
-    public function it_accepts_all_parameters(): void
+    public function accepts_all_parameters(): void
     {
         $listener = new Listener(
             event: 'App\Event\OrderPlaced',
@@ -45,7 +45,7 @@ final class ListenerTest extends TestCase
     }
 
     #[Test]
-    public function it_is_readonly(): void
+    public function is_readonly(): void
     {
         $reflection = new \ReflectionClass(Listener::class);
 
@@ -53,7 +53,7 @@ final class ListenerTest extends TestCase
     }
 
     #[Test]
-    public function it_targets_classes_and_is_repeatable(): void
+    public function targets_classes_and_is_repeatable(): void
     {
         $reflection = new \ReflectionClass(Listener::class);
         $attributes = $reflection->getAttributes(\Attribute::class);
@@ -65,7 +65,7 @@ final class ListenerTest extends TestCase
     }
 
     #[Test]
-    public function it_can_be_read_from_class_via_reflection(): void
+    public function can_be_read_from_class_via_reflection(): void
     {
         $class = new class {};
 
@@ -81,7 +81,7 @@ final class ListenerTest extends TestCase
     }
 
     #[Test]
-    public function it_supports_multiple_attributes_on_same_class(): void
+    public function supports_multiple_attributes_on_same_class(): void
     {
         $reflection = new \ReflectionClass(MultiListenerFixture::class);
         $attributes = $reflection->getAttributes(Listener::class);
@@ -96,7 +96,7 @@ final class ListenerTest extends TestCase
     }
 
     #[Test]
-    public function it_supports_async_attribute(): void
+    public function supports_async_attribute(): void
     {
         $reflection = new \ReflectionClass(AsyncListenerFixture::class);
         $attributes = $reflection->getAttributes(Listener::class);

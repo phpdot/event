@@ -12,7 +12,7 @@ use Psr\Container\ContainerInterface;
 final class SyncOnlyDispatcherTest extends TestCase
 {
     #[Test]
-    public function it_executes_handler_synchronously(): void
+    public function executes_handler_synchronously(): void
     {
         $called = false;
         $handler = new class ($called) {
@@ -34,7 +34,7 @@ final class SyncOnlyDispatcherTest extends TestCase
     }
 
     #[Test]
-    public function it_ignores_priority(): void
+    public function ignores_priority(): void
     {
         $receivedEvent = null;
         $handler = new class ($receivedEvent) {
@@ -58,7 +58,7 @@ final class SyncOnlyDispatcherTest extends TestCase
     }
 
     #[Test]
-    public function it_throws_on_non_callable_handler(): void
+    public function throws_on_non_callable_handler(): void
     {
         $container = $this->createContainer(['bad' => 'not callable']);
         $dispatcher = new SyncOnlyDispatcher($container);

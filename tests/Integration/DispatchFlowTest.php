@@ -4,22 +4,22 @@ declare(strict_types=1);
 
 namespace PHPdot\Event\Tests\Integration;
 
-use PHPdot\Event\Contract\AsyncDispatcherInterface;
+use PHPdot\Contracts\Event\AsyncDispatcherInterface;
 use PHPdot\Event\DTO\ListenerEntry;
 use PHPdot\Event\EventDispatcher;
 use PHPdot\Event\ListenerProvider;
 use PHPdot\Event\Provider\InMemoryListenerRepository;
 use PHPdot\Event\Provider\SyncOnlyDispatcher;
+use PHPdot\Event\Tests\Support\RecordingTracer;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
-use Psr\Log\NullLogger;
 
 final class DispatchFlowTest extends TestCase
 {
     #[Test]
-    public function it_implements_psr14(): void
+    public function implements_psr14(): void
     {
         $dispatcher = $this->createDispatcher(new ListenerProvider(), []);
 
@@ -27,7 +27,7 @@ final class DispatchFlowTest extends TestCase
     }
 
     #[Test]
-    public function it_dispatches_full_flow_with_multiple_listeners(): void
+    public function dispatches_full_flow_with_multiple_listeners(): void
     {
         $log = [];
 
@@ -82,7 +82,7 @@ final class DispatchFlowTest extends TestCase
     }
 
     #[Test]
-    public function it_dispatches_with_sync_only_fallback(): void
+    public function dispatches_with_sync_only_fallback(): void
     {
         $called = false;
 
@@ -102,7 +102,7 @@ final class DispatchFlowTest extends TestCase
 
         // SyncOnlyDispatcher runs "async" handlers synchronously
         $async = new SyncOnlyDispatcher($container);
-        $dispatcher = new EventDispatcher($provider, $container, $async, new NullLogger());
+        $dispatcher = new EventDispatcher($provider, $container, $async, new RecordingTracer());
 
         $dispatcher->dispatch(new OrderPlaced(1, 1, 10.0));
 
@@ -110,7 +110,7 @@ final class DispatchFlowTest extends TestCase
     }
 
     #[Test]
-    public function it_loads_from_repository_and_dispatches(): void
+    public function loads_from_repository_and_dispatches(): void
     {
         $called = false;
 
@@ -138,7 +138,7 @@ final class DispatchFlowTest extends TestCase
     }
 
     #[Test]
-    public function it_respects_disabled_from_repository(): void
+    public function respects_disabled_from_repository(): void
     {
         $called = false;
 
@@ -168,7 +168,7 @@ final class DispatchFlowTest extends TestCase
     }
 
     #[Test]
-    public function it_dispatches_event_to_parent_class_listener(): void
+    public function dispatches_event_to_parent_class_listener(): void
     {
         $called = false;
 
@@ -193,7 +193,7 @@ final class DispatchFlowTest extends TestCase
     }
 
     #[Test]
-    public function it_handles_event_with_no_listeners(): void
+    public function handles_event_with_no_listeners(): void
     {
         $provider = new ListenerProvider();
         $dispatcher = $this->createDispatcher($provider, []);
@@ -205,7 +205,7 @@ final class DispatchFlowTest extends TestCase
     }
 
     #[Test]
-    public function it_supports_mutable_events(): void
+    public function supports_mutable_events(): void
     {
         $provider = new ListenerProvider();
         $provider->addListener(MutableOrderEvent::class, 'addTax', order: 1);
@@ -247,7 +247,7 @@ final class DispatchFlowTest extends TestCase
             public function publishAsync(object $event, string $handlerClass, int $priority = 0): void {}
         };
 
-        return new EventDispatcher($provider, $container, $async, new NullLogger());
+        return new EventDispatcher($provider, $container, $async, new RecordingTracer());
     }
 
     /**

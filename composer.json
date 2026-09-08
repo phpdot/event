@@ -1,6 +1,6 @@
 {
     "name": "phpdot/event",
-    "description": "PSR-14 event dispatcher with attribute-based listener discovery, async dispatch, ordering, and persistence abstraction.",
+    "description": "PSR-14 event dispatcher with attribute-discovered listeners, ordering, an async seam with a sync fallback, and host-owned persistence — observability through phpdot/contracts spans.",
     "type": "library",
     "license": "MIT",
     "authors": [
@@ -9,15 +9,26 @@
             "email": "omar@phpdot.com"
         }
     ],
-    "keywords": ["event", "dispatcher", "psr-14", "listener", "attribute", "async"],
+    "keywords": [
+        "event",
+        "dispatcher",
+        "psr-14",
+        "listener",
+        "attribute",
+        "async"
+    ],
     "require": {
         "php": ">=8.5",
+        "phpdot/attribute": "^0.3",
+        "phpdot/console": "^0.3",
+        "phpdot/contracts": "^0.3",
         "psr/container": "^2.0",
         "psr/event-dispatcher": "^1.0",
-        "psr/log": "^3.0"
+        "symfony/console": "^8.0"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.94",
+        "phpdot/container": "^0.3",
         "phpstan/phpstan": "^2.0",
         "phpstan/phpstan-strict-rules": "^2.0",
         "phpunit/phpunit": "^13.0"
@@ -49,5 +60,8 @@
     "support": {
         "source": "https://github.com/phpdot/event",
         "issues": "https://github.com/phpdot/monorepo/issues"
+    },
+    "suggest": {
+        "phpdot/container": "Autowires the container-attribute services declared in src (the attributes stay inert until reflected, so standalone consumers don't need it installed)."
     }
 }
